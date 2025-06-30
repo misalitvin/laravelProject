@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->constrained()->onDelete('cascade');
-            $table->integer('daysToExpire');
+            $table->integer('days_to_complete');
             $table->decimal('cost', 10);
             $table->timestamps();
         });
@@ -28,4 +28,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('product_service');
     }
+
+
 };

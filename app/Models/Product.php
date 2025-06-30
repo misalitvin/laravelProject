@@ -11,7 +11,9 @@ class Product extends Model
 
     public function services()
     {
-        return $this->belongsToMany(Service::class);
+        return $this->belongsToMany(Service::class)
+            ->withPivot('days_to_complete', 'cost')
+            ->withTimestamps();
     }
     protected $fillable = ['name', 'description', 'manufacturer', 'release_date', 'price'];
 }
