@@ -20,6 +20,9 @@
                     {{ $product->name }}
                 </div>
                 <div>
+                    <strong>{{ $product->manufacturer->name }}</strong>
+                </div>
+                <div>
                     <strong>{{ $product->price }}</strong>
                 </div>
             </a>

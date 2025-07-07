@@ -7,7 +7,7 @@
         <p><strong>ID:</strong> {{ $product->id }}</p>
         <p><strong>Name:</strong> {{ $product->name }}</p>
         <p><strong>Description:</strong> {{ $product->description }}</p>
-        <p><strong>Manufacturer:</strong> {{ $product->manufacturer }}</p>
+        <p><strong>Manufacturer:</strong> {{ $product->manufacturer->name }}</p>
         <p><strong>Release Date:</strong> {{ \Illuminate\Support\Carbon::parse($product->release_date)->format('F j, Y') }}</p>
         <p><strong>Price:</strong> {{ number_format($product->price, 2) }} BYN</p>
 

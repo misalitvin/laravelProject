@@ -21,12 +21,22 @@
                     </div>
 
                     <div class="sm:col-span-4">
-                        <x-form-label for="manufacturer">Manufacturer</x-form-label>
+                        <x-form-label for="manufacturer_id">Manufacturer</x-form-label>
                         <div class="mt-2">
-                            <x-form-input name="manufacturer" id="manufacturer" value="{{ old('manufacturer', $product->manufacturer) }}" required />
-                            <x-form-error name="manufacturer" />
+                            <select name="manufacturer_id" id="manufacturer_id" required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Select manufacturer</option>
+                                @foreach($manufacturers as $manufacturer)
+                                    <option value="{{ $manufacturer->id }}"
+                                        {{ old('manufacturer_id', $product->manufacturer_id) == $manufacturer->id ? 'selected' : '' }}>
+                                        {{ $manufacturer->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-form-error name="manufacturer_id" />
                         </div>
                     </div>
+
 
                     <div class="sm:col-span-3">
                         <x-form-label for="release_date">Release Date</x-form-label>

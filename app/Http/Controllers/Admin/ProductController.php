@@ -1,142 +1,84 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreOrUpdateProductRequest;
+use App\Models\Manufacturer;
 use App\Models\Product;
 use App\Models\Service;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 
-class ProductController extends Controller
+final class ProductController extends Controller
 {
+    protected ProductService $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     public function index(Request $request)
     {
-        $query = Product::query();
+        $products = $this->productService
+            ->searchAndFilter($request)
+            ->paginate(10)
+            ->withQueryString();
 
-        if ($search = $request->input('search')) {
-            $search = strtolower($search);
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(description) LIKE ?', ["%{$search}%"]);
-            });
-        }
-
-        if ($priceMin = $request->input('price_min')) {
-            $query->where('price', '>=', $priceMin);
-        }
-        if ($priceMax = $request->input('price_max')) {
-            $query->where('price', '<=', $priceMax);
-        }
-
-        if ($sort = $request->input('sort')) {
-            if ($sort === 'name_asc') {
-                $query->orderBy('name');
-            } elseif ($sort === 'name_desc') {
-                $query->orderBy('name', 'desc');
-            }
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        $products = $query->paginate(10)->withQueryString();
-        return view('admin.products.index', ['products' => $products]);
+        return view('admin.products.index', compact('products'));
     }
 
     public function create()
     {
         $services = Service::all();
-        return view('admin.products.create', ['services' => $services]);
+        $manufacturers = Manufacturer::all();
+
+        return view('admin.products.create', compact('services', 'manufacturers'));
     }
 
-    public function store(Request $request)
+    public function store(StoreOrUpdateProductRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'manufacturer' => 'required',
-            'release_date' => 'required|date',
-            'price' => 'required|numeric',
-            'services' => 'array',
-        ]);
+        $validated = $request->validated();
 
         $product = Product::create($validated);
 
-        $syncData = [];
+        $this->productService->syncServices($product, $validated['services'] ?? []);
 
-        if (!empty($validated['services'])) {
-            foreach ($validated['services'] as $serviceId => $serviceData) {
-                if (isset($serviceData['selected']) && $serviceData['selected']) {
-                    $syncData[$serviceId] = [
-                        'days_to_complete' => $serviceData['days_to_complete'] ?? 0,
-                        'cost' => $serviceData['cost'] ?? 0,
-                    ];
-                }
-            }
-
-            $product->services()->sync($syncData);
-        }
+        return redirect()->route('admin.products.index');
     }
 
-
-        public function show(Product $product)
+    public function show(Product $product)
     {
         $product->load('services');
 
         return view('admin.products.show', compact('product'));
     }
 
-
     public function edit(Product $product)
     {
         $product->load('services');
         $services = Service::all();
+        $manufacturers = Manufacturer::all();
 
-        return view('admin.products.edit', [
-            'product' => $product,
-            'services' => $services,
-        ]);
+        return view('admin.products.edit', compact('product', 'services', 'manufacturers'));
     }
 
-
-    public function update(Request $request, Product $product)
+    public function update(StoreOrUpdateProductRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'manufacturer' => 'required',
-            'release_date' => 'required|date',
-            'price' => 'required|numeric',
-            'services' => 'array',
-        ]);
+        $product->update($request->validated());
 
-        $product->update($validated);
-
-        $syncData = [];
-
-        if (!empty($validated['services'])) {
-            foreach ($validated['services'] as $serviceId => $serviceData) {
-                if (!empty($serviceData['selected'])) {
-                    $syncData[$serviceId] = [
-                        'days_to_complete' => $serviceData['days_to_complete'] ?? 0,
-                        'cost' => $serviceData['cost'] ?? 0,
-                    ];
-                }
-            }
-
-            $product->services()->sync($syncData);
-        } else {
-            $product->services()->detach();
-        }
+        $this->productService->syncServices($product, $request->validated('services') ?? []);
 
         return redirect()->route('admin.products.index');
     }
-
-
 
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('admin.products.index');
     }
 }
-

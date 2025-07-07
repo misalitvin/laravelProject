@@ -7,7 +7,7 @@
     <div class="space-y-6">
         <div class="bg-white p-6 rounded shadow">
             <p><strong>Description:</strong> {{ $product->description }}</p>
-            <p><strong>Manufacturer:</strong> {{ $product->manufacturer }}</p>
+            <p><strong>Manufacturer:</strong> {{ $product->manufacturer->name }}</p>
             <p><strong>Release Date:</strong> {{ Carbon::parse($product->release_date)->format('F j, Y') }}</p>
             <p>
                 <strong>Base Price:</strong>

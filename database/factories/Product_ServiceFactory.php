@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class Product_ServiceFactory extends Factory
+final class Product_ServiceFactory extends Factory
 {
     public function definition()
     {

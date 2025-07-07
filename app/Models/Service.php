@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class Service extends Model
+final class Service extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['name'];
 
     public function products()
     {
@@ -15,5 +19,4 @@ class Service extends Model
             ->withPivot('days_to_complete', 'cost')
             ->withTimestamps();
     }
-    protected $fillable = ['name'];
 }
