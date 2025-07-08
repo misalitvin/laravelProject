@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ProductExportController;
 use App\Http\Controllers\Admin\ServiceController as AdminServiceController;
 use App\Http\Controllers\User\ProductController as UserProductController;
 
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
+    Route::get('products/export', ProductExportController::class)->name('products.export');
     Route::resource('products', AdminProductController::class);
     Route::resource('services', AdminServiceController::class);
 });

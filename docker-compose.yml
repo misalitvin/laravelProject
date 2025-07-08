@@ -107,6 +107,23 @@ services:
             - '/dev/shm:/dev/shm'
         networks:
             - sail
+    localstack:
+        image: localstack/localstack:latest
+        container_name: localstack
+        ports:
+            - "4566:4566"
+            - "4571:4571"
+        environment:
+            - SERVICES=s3
+            - DEFAULT_REGION=us-east-1
+            - DATA_DIR=/tmp/localstack/data
+            - AWS_ACCESS_KEY_ID=localstack
+            - AWS_SECRET_ACCESS_KEY=localstack
+            - DEBUG=1
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        networks:
+            - sail
 networks:
     sail:
         driver: bridge

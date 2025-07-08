@@ -5,11 +5,18 @@
 
 
     <x-slot:action>
-        <a href="{{ route('admin.products.create') }}"
-           class="inline-block rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-            Create Product
-        </a>
+        <div class="flex gap-4">
+            <a href="{{ route('admin.products.create') }}"
+               class="inline-block rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                Create Product
+            </a>
+            <a href="{{ route('admin.products.export') }}"
+               class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Export Catalog
+            </a>
+        </div>
     </x-slot:action>
+
 
     <x-product-filters />
 
