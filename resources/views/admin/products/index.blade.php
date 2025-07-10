@@ -30,7 +30,7 @@
                     <strong>{{ $product->manufacturer->name }}</strong>
                 </div>
                 <div>
-                    <strong>{{ $product->price }}</strong>
+                    <strong>{{ $product->price }} BYN</strong>
                 </div>
             </a>
         @endforeach

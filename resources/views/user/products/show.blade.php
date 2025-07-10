@@ -9,12 +9,22 @@
             <p><strong>Description:</strong> {{ $product->description }}</p>
             <p><strong>Manufacturer:</strong> {{ $product->manufacturer->name }}</p>
             <p><strong>Release Date:</strong> {{ Carbon::parse($product->release_date)->format('F j, Y') }}</p>
+
             <p>
-                <strong>Base Price:</strong>
+                <strong>Price:</strong>
                 <span id="base-price" data-base-price="{{ $product->price }}">
-                {{ number_format($product->price, 2) }}
+                    {{ number_format($product->price, 2) }}
                 </span> BYN
             </p>
+            <p>
+                <strong>Price in other currencies:</strong>
+            <ul class="list-disc list-inside ml-5">
+                <li>USD: <span id="base-usd">{{ number_format($prices['USD'] ?? 0, 2) }}</span></li>
+                <li>EUR: <span id="base-eur">{{ number_format($prices['EUR'] ?? 0, 2) }}</span></li>
+                <li>PLN: <span id="base-pln">{{ number_format($prices['PLN'] ?? 0, 2) }}</span></li>
+            </ul>
+            </p>
+
         </div>
 
         <div class="bg-white p-6 rounded shadow">
@@ -39,32 +49,48 @@
         </div>
 
         <div class="text-lg font-bold">
-            Total: <span id="total-price">{{ number_format($product->price, 2) }}</span> BYN
+            Total:
+            <span id="total-byn">{{ number_format($product->price, 2) }}</span> BYN
+            <ul class="list-disc list-inside ml-5 mt-1">
+                <li>USD: <span id="total-usd">{{ number_format($prices['USD'] ?? 0, 2) }}</span></li>
+                <li>EUR: <span id="total-eur">{{ number_format($prices['EUR'] ?? 0, 2) }}</span></li>
+                <li>PLN: <span id="total-pln">{{ number_format($prices['PLN'] ?? 0, 2) }}</span></li>
+            </ul>
         </div>
+
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const basePriceEl = document.getElementById('base-price');
-            const basePrice = parseFloat(basePriceEl.dataset.basePrice);
-            const totalPriceEl = document.getElementById('total-price');
+            const basePrice = parseFloat(document.getElementById('base-price').dataset.basePrice);
+
+            const prices = {
+                USD: parseFloat("{{ $prices['USD'] ?? 0 }}"),
+                EUR: parseFloat("{{ $prices['EUR'] ?? 0 }}"),
+                PLN: parseFloat("{{ $prices['PLN'] ?? 0 }}"),
+            };
+
             const checkboxes = document.querySelectorAll('.service-checkbox');
 
             function updateTotal() {
-                let total = basePrice;
+                let totalBYN = basePrice;
 
                 checkboxes.forEach(cb => {
                     if (cb.checked) {
-                        total += parseFloat(cb.dataset.cost);
+                        totalBYN += parseFloat(cb.dataset.cost);
                     }
                 });
 
-                totalPriceEl.textContent = total.toFixed(2);
+                document.getElementById('total-byn').textContent = totalBYN.toFixed(2);
+
+                document.getElementById('total-usd').textContent = (totalBYN * prices.USD / basePrice).toFixed(2);
+                document.getElementById('total-eur').textContent = (totalBYN * prices.EUR / basePrice).toFixed(2);
+                document.getElementById('total-pln').textContent = (totalBYN * prices.PLN / basePrice).toFixed(2);
             }
+
             updateTotal();
 
             checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
         });
     </script>
-
 </x-layout>

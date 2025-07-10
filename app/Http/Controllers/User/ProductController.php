@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\CurrencyRate;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
@@ -32,6 +33,18 @@ final class ProductController extends Controller
     {
         $product->load('services');
 
-        return view('user.products.show', compact('product'));
+        $rates = CurrencyRate::whereIn('currency', ['BYN', 'USD', 'EUR', 'PLN'])
+            ->pluck('rate', 'currency');
+
+        $priceBYN = $product->price;
+
+        $prices = [
+            'BYN' => $priceBYN,
+            'USD' => $priceBYN * ($rates['USD'] ?? 1),
+            'EUR' => $priceBYN * ($rates['EUR'] ?? 1),
+            'PLN' => $priceBYN * ($rates['PLN'] ?? 1),
+        ];
+
+        return view('user.products.show', compact('product', 'prices'));
     }
 }
