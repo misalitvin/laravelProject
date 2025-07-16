@@ -27,6 +27,7 @@ services:
             - meilisearch
             - mailpit
             - selenium
+            - rabbitmq
     pgsql:
         image: 'postgres:15'
         ports:
@@ -122,6 +123,18 @@ services:
             - DEBUG=1
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+        networks:
+            - sail
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: rabbitmq
+        restart: unless-stopped
+        ports:
+            - "5672:5672"     # Laravel connects to this
+            - "15672:15672"   # Web UI access
+        environment:
+            RABBITMQ_DEFAULT_USER: guest
+            RABBITMQ_DEFAULT_PASS: guest
         networks:
             - sail
 networks:

@@ -1,8 +1,13 @@
 <x-layout title="All Products" heading="Product Catalog">
+    @if(session('success'))
+        <div id="flash-message" class="bg-green-200 text-green-800 p-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <x-slot:heading>
         Products page
     </x-slot:heading>
-
 
     <x-slot:action>
         <div class="flex gap-4">
@@ -16,7 +21,6 @@
             </a>
         </div>
     </x-slot:action>
-
 
     <x-product-filters />
 
