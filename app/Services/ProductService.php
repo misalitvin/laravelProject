@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\ProductFilterData;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 
 final class ProductService
 {
-    public function searchAndFilter(Request $request): Builder
+    public function searchAndFilter(ProductFilterData $filterData): Builder
     {
         $query = Product::query();
 
-        if ($search = $request->input('search')) {
+        if ($search = $filterData->search) {
             $search = mb_strtolower($search);
             $query->where(function ($q) use ($search) {
                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
@@ -22,20 +22,32 @@ final class ProductService
             });
         }
 
-        if ($priceMin = $request->input('price_min')) {
-            $query->where('price', '>=', $priceMin);
+        if ($filterData->manufacturerId !== null) {
+            $query->where('manufacturer_id', $filterData->manufacturerId);
         }
 
-        if ($priceMax = $request->input('price_max')) {
-            $query->where('price', '<=', $priceMax);
-        }
-
-        if ($sort = $request->input('sort')) {
-            $query->orderBy(match ($sort) {
-                'name_asc' => 'name',
-                'name_desc' => ['name', 'desc'],
-                default => 'created_at',
+        if ($filterData->serviceId !== null) {
+            $query->whereHas('services', function ($q) use ($filterData) {
+                $q->where('services.id', $filterData->serviceId);
             });
+        }
+
+        if ($filterData->minPrice !== null) {
+            $query->where('price', '>=', $filterData->minPrice);
+        }
+
+        if ($filterData->maxPrice !== null) {
+            $query->where('price', '<=', $filterData->maxPrice);
+        }
+
+        if ($sort = $filterData->sort) {
+            $query->orderBy(
+                ...match ($sort) {
+                'name_asc' => ['name', 'asc'],
+                'name_desc' => ['name', 'desc'],
+                default => ['created_at', 'desc'],
+            }
+            );
         } else {
             $query->orderBy('created_at', 'desc');
         }
@@ -48,10 +60,10 @@ final class ProductService
         $syncData = [];
 
         foreach ($services as $serviceId => $serviceData) {
-            if (! empty($serviceData['selected'])) {
+            if (isset($serviceData['selected']) && $serviceData['selected']) {
                 $syncData[$serviceId] = [
-                    'days_to_complete' => $serviceData['days_to_complete'] ?? 0,
-                    'cost' => $serviceData['cost'] ?? 0,
+                    'days_to_complete' => $serviceData['days_to_complete'] ?? null,
+                    'cost' => $serviceData['cost'] ?? null,
                 ];
             }
         }

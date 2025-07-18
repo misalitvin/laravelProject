@@ -14,13 +14,12 @@
                 <strong>Price:</strong>
                 <span id="base-price" data-base-price="{{ $product->price }}">
                     {{ number_format($product->price, 2) }}
-                </span> BYN
+                </span> EUR
             </p>
             <p>
                 <strong>Price in other currencies:</strong>
             <ul class="list-disc list-inside ml-5">
                 <li>USD: <span id="base-usd">{{ number_format($prices['USD'] ?? 0, 2) }}</span></li>
-                <li>EUR: <span id="base-eur">{{ number_format($prices['EUR'] ?? 0, 2) }}</span></li>
                 <li>PLN: <span id="base-pln">{{ number_format($prices['PLN'] ?? 0, 2) }}</span></li>
             </ul>
             </p>
@@ -40,7 +39,7 @@
                             <span class="text-gray-800">{{ $service->name }}</span>
                         </label>
                         <div class="text-sm text-gray-600">
-                            <span>{{ number_format($service->pivot->cost, 2) }} BYN</span><br>
+                            <span>{{ number_format($service->pivot->cost, 2) }} EUR</span><br>
                             <span class="text-xs"> {{ $service->pivot->days_to_complete }} days to complete</span>
                         </div>
                     </div>
@@ -50,10 +49,9 @@
 
         <div class="text-lg font-bold">
             Total:
-            <span id="total-byn">{{ number_format($product->price, 2) }}</span> BYN
+            <span id="total-eur">{{ number_format($product->price, 2) }}</span> EUR
             <ul class="list-disc list-inside ml-5 mt-1">
                 <li>USD: <span id="total-usd">{{ number_format($prices['USD'] ?? 0, 2) }}</span></li>
-                <li>EUR: <span id="total-eur">{{ number_format($prices['EUR'] ?? 0, 2) }}</span></li>
                 <li>PLN: <span id="total-pln">{{ number_format($prices['PLN'] ?? 0, 2) }}</span></li>
             </ul>
         </div>
@@ -66,26 +64,24 @@
 
             const prices = {
                 USD: parseFloat("{{ $prices['USD'] ?? 0 }}"),
-                EUR: parseFloat("{{ $prices['EUR'] ?? 0 }}"),
                 PLN: parseFloat("{{ $prices['PLN'] ?? 0 }}"),
             };
 
             const checkboxes = document.querySelectorAll('.service-checkbox');
 
             function updateTotal() {
-                let totalBYN = basePrice;
+                let totalEUR = basePrice;
 
                 checkboxes.forEach(cb => {
                     if (cb.checked) {
-                        totalBYN += parseFloat(cb.dataset.cost);
+                        totalEUR += parseFloat(cb.dataset.cost);
                     }
                 });
 
-                document.getElementById('total-byn').textContent = totalBYN.toFixed(2);
+                document.getElementById('total-eur').textContent = totalEUR.toFixed(2);
 
-                document.getElementById('total-usd').textContent = (totalBYN * prices.USD / basePrice).toFixed(2);
-                document.getElementById('total-eur').textContent = (totalBYN * prices.EUR / basePrice).toFixed(2);
-                document.getElementById('total-pln').textContent = (totalBYN * prices.PLN / basePrice).toFixed(2);
+                document.getElementById('total-usd').textContent = (totalEUR * prices.USD / basePrice).toFixed(2);
+                document.getElementById('total-pln').textContent = (totalEUR * prices.PLN / basePrice).toFixed(2);
             }
 
             updateTotal();

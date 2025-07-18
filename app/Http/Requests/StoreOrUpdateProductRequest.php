@@ -21,11 +21,14 @@ final class StoreOrUpdateProductRequest extends FormRequest
             'release_date' => ['required', 'date'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['required', 'string'],
+            'services' => ['array'],
         ];
 
         $services = $this->input('services', []);
 
         foreach ($services as $serviceId => $serviceData) {
+            $rules["services.$serviceId.selected"] = ['nullable'];
+
             if (! empty($serviceData['selected'])) {
                 $rules["services.$serviceId.days_to_complete"] = ['required', 'integer', 'min:1'];
                 $rules["services.$serviceId.cost"] = ['required', 'numeric', 'min:0'];
@@ -38,10 +41,10 @@ final class StoreOrUpdateProductRequest extends FormRequest
         return $rules;
     }
 
+
     public function messages()
     {
         return [
-            // Main product fields
             'name.required' => 'Product name is required.',
             'name.string' => 'Product name must be a string.',
             'name.max' => 'Product name cannot exceed 255 characters.',

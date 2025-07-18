@@ -10,7 +10,7 @@
         <p><strong>Description:</strong> {{ $product->description }}</p>
         <p><strong>Manufacturer:</strong> {{ $product->manufacturer->name }}</p>
         <p><strong>Release Date:</strong> {{ Carbon::parse($product->release_date)->format('F j, Y') }}</p>
-        <p><strong>Price:</strong> {{ number_format($product->price, 2) }} BYN</p>
+        <p><strong>Price:</strong> {{ number_format($product->price, 2) }} EUR</p>
 
         <div class="mt-6">
             <h2 class="font-bold text-lg mb-3">Services</h2>
@@ -19,7 +19,7 @@
                 <div class="p-3 border border-gray-300 rounded-md mb-2 bg-white">
                     <strong class="text-gray-800">{{ $service->name }}</strong><br>
                     Days to Complete: <span class="text-gray-700">{{ $service->pivot->days_to_complete }}</span><br>
-                    Cost: <span class="text-gray-700">{{ number_format($service->pivot->cost, 2) }} BYN</span>
+                    Cost: <span class="text-gray-700">{{ number_format($service->pivot->cost, 2) }} EUR</span>
                 </div>
             @empty
                 <p class="italic text-gray-600">No services attached.</p>

@@ -11,7 +11,7 @@ final class ServiceFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->randomElement(['Warranty Service', 'Delivery', 'Installation', 'Customization']),
+            'name' => $this->faker->unique()->randomElement(['Warranty Service', 'Delivery', 'Installation', 'Customization']),
         ];
     }
 }

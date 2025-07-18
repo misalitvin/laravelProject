@@ -17,7 +17,7 @@
                     {{ Str::limit($product->description, 80) }}
                 </div>
                 <div class="mt-2 text-sm text-gray-800">
-                    <strong>{{ number_format($product->price, 2) }} BYN</strong>
+                    <strong>{{ number_format($product->price, 2) }} EUR</strong>
                 </div>
             </a>
         @endforeach

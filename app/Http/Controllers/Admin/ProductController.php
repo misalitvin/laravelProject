@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\DTOs\ProductFilterData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\StoreOrUpdateProductRequest;
 use App\Models\Manufacturer;
 use App\Models\Product;
@@ -21,15 +23,19 @@ final class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index(Request $request)
+
+    public function index(ProductFilterRequest $request)
     {
+        $filterData = ProductFilterData::fromRequest($request);
+
         $products = $this->productService
-            ->searchAndFilter($request)
+            ->searchAndFilter($filterData)
             ->paginate(10)
             ->withQueryString();
 
         return view('admin.products.index', compact('products'));
     }
+
 
     public function create()
     {
@@ -68,6 +74,7 @@ final class ProductController extends Controller
 
     public function update(StoreOrUpdateProductRequest $request, Product $product)
     {
+
         $product->update($request->validated());
 
         $this->productService->syncServices($product, $request->validated('services') ?? []);

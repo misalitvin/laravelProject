@@ -48,6 +48,6 @@ final class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('products');
+        return redirect()->route('products.index');
     }
 }

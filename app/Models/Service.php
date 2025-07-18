@@ -6,14 +6,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-final class Service extends Model
+class Service extends Model
 {
     use HasFactory;
 
     protected $fillable = ['name'];
 
-    public function products()
+    public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class)
             ->withPivot('days_to_complete', 'cost')

@@ -6,7 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-final class CurrencyRate extends Model
+class CurrencyRate extends Model
 {
     protected $fillable = ['currency', 'rate'];
 }

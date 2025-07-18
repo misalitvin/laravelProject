@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
 
+use App\DTOs\ProductFilterData;
+use App\Enums\Currency;
 use App\Http\Controllers\Controller;
 use App\Models\CurrencyRate;
 use App\Models\Product;
@@ -21,30 +23,38 @@ final class ProductController extends Controller
 
     public function index(Request $request)
     {
+        $filterData = ProductFilterData::fromRequest($request);
+
         $products = $this->productService
-            ->searchAndFilter($request)
+            ->searchAndFilter($filterData)
             ->paginate(10)
             ->withQueryString();
 
-        return view('user.products.index', ['products' => $products]);
+        return view('user.products.index', compact('products'));
     }
 
     public function show(Product $product)
     {
         $product->load('services');
 
-        $rates = CurrencyRate::whereIn('currency', ['BYN', 'USD', 'EUR', 'PLN'])
+        $currencies = array_column(Currency::cases(), 'value');
+
+        $rates = CurrencyRate::whereIn('currency', $currencies)
             ->pluck('rate', 'currency');
 
-        $priceBYN = $product->price;
+        $priceEUR = $product->price;
 
-        $prices = [
-            'BYN' => $priceBYN,
-            'USD' => $priceBYN * ($rates['USD'] ?? 1),
-            'EUR' => $priceBYN * ($rates['EUR'] ?? 1),
-            'PLN' => $priceBYN * ($rates['PLN'] ?? 1),
-        ];
+        $prices = [];
+
+        foreach (Currency::cases() as $currency) {
+            $rate = $rates[$currency->value] ?? 1;
+
+            $prices[$currency->value] = $currency === Currency::EUR
+                ? $priceEUR
+                : $priceEUR * $rate;
+        }
 
         return view('user.products.show', compact('product', 'prices'));
     }
+
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreOrUpdateServiceRequest;
 use App\Models\Service;
-use Illuminate\Http\Request;
 
 final class ServiceController extends Controller
 {
@@ -22,13 +22,16 @@ final class ServiceController extends Controller
         return view('admin.services.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreOrUpdateServiceRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+        Service::create($request->validated());
 
-        Service::create($validated);
+        return redirect()->route('admin.services.index');
+    }
+
+    public function update(StoreOrUpdateServiceRequest $request, Service $service)
+    {
+        $service->update($request->validated());
 
         return redirect()->route('admin.services.index');
     }
@@ -43,16 +46,6 @@ final class ServiceController extends Controller
         return view('admin.services.edit', compact('service'));
     }
 
-    public function update(Request $request, Service $service)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        $service->update($validated);
-
-        return redirect()->route('admin.services.index');
-    }
 
     public function destroy(Service $service)
     {

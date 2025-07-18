@@ -15,10 +15,10 @@
                     <strong class="text-gray-800">{{ $product->name }}</strong><br>
                     Manufacturer: <span class="text-gray-700">{{ $product->manufacturer->name }}</span><br>
                     Release Date: <span class="text-gray-700">{{ \Illuminate\Support\Carbon::parse($product->release_date)->format('F j, Y') }}</span><br>
-                    Product Price: <span class="text-gray-700">{{ number_format($product->price, 2) }} BYN</span><br>
+                    Product Price: <span class="text-gray-700">{{ number_format($product->price, 2) }} EUR</span><br>
                     @if($product->pivot)
                         Days to Complete: <span class="text-gray-700">{{ $product->pivot->days_to_complete }}</span><br>
-                        Service Cost: <span class="text-gray-700">{{ number_format($product->pivot->cost, 2) }} BYN</span>
+                        Service Cost: <span class="text-gray-700">{{ number_format($product->pivot->cost, 2) }} EUR</span>
                     @endif
                 </div>
             @empty
