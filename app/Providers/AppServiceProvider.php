@@ -47,7 +47,7 @@ final class AppServiceProvider extends ServiceProvider
                     $client->waitUntil('BucketExists', ['Bucket' => $bucket]);
                 }
             } catch (AwsException $e) {
-                logger()->error('S3 bucket creation failed: ' . $e->getMessage());
+                logger()->error('S3 bucket creation failed: '.$e->getMessage());
             }
         }
     }

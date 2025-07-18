@@ -12,7 +12,6 @@ use App\Models\Manufacturer;
 use App\Models\Product;
 use App\Models\Service;
 use App\Services\ProductService;
-use Illuminate\Http\Request;
 
 final class ProductController extends Controller
 {
@@ -22,7 +21,6 @@ final class ProductController extends Controller
     {
         $this->productService = $productService;
     }
-
 
     public function index(ProductFilterRequest $request)
     {
@@ -35,7 +33,6 @@ final class ProductController extends Controller
 
         return view('admin.products.index', compact('products'));
     }
-
 
     public function create()
     {

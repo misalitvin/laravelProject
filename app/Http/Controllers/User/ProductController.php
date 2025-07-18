@@ -56,5 +56,4 @@ final class ProductController extends Controller
 
         return view('user.products.show', compact('product', 'prices'));
     }
-
 }

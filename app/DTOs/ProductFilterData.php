@@ -9,10 +9,15 @@ use Illuminate\Http\Request;
 final class ProductFilterData
 {
     public ?string $search;
+
     public ?int $manufacturerId;
+
     public ?int $serviceId;
+
     public ?float $minPrice;
+
     public ?float $maxPrice;
+
     public ?string $sort;
 
     public function __construct(
@@ -42,6 +47,4 @@ final class ProductFilterData
             $request->input('sort')
         );
     }
-
-
 }

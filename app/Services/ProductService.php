@@ -43,10 +43,10 @@ final class ProductService
         if ($sort = $filterData->sort) {
             $query->orderBy(
                 ...match ($sort) {
-                'name_asc' => ['name', 'asc'],
-                'name_desc' => ['name', 'desc'],
-                default => ['created_at', 'desc'],
-            }
+                    'name_asc' => ['name', 'asc'],
+                    'name_desc' => ['name', 'desc'],
+                    default => ['created_at', 'desc'],
+                }
             );
         } else {
             $query->orderBy('created_at', 'desc');

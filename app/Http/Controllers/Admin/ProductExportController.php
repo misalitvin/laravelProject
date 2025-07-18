@@ -18,7 +18,7 @@ final class ProductExportController extends Controller
 
         $lastProduct = Product::latest('id')->first();
 
-        if (!$lastProduct) {
+        if (! $lastProduct) {
             return redirect()->route('admin.products.index')->with('success', 'No products to export.');
         }
 

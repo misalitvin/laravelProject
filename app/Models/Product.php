@@ -15,7 +15,7 @@ class Product extends Model
 
     protected $fillable = ['name', 'description', 'release_date', 'price', 'manufacturer_id'];
 
-    public function services():BelongsToMany
+    public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class)
             ->withPivot('days_to_complete', 'cost')

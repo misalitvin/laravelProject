@@ -68,7 +68,6 @@ final class ProductControllerTest extends TestCase
         $this->assertEquals(100.0, $prices[Currency::EUR->value]);
         $this->assertEquals(100.0 * 1.1, $prices[Currency::USD->value] ?? null);
 
-
         $response->assertSeeText($product->name);
     }
 }

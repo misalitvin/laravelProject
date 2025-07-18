@@ -46,7 +46,6 @@ final class ServiceController extends Controller
         return view('admin.services.edit', compact('service'));
     }
 
-
     public function destroy(Service $service)
     {
         $service->delete();

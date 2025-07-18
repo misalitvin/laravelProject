@@ -24,8 +24,8 @@ class StoreOrUpdateServiceRequest extends FormRequest
     {
         return [
             'name.required' => 'The service name is required.',
-            'name.string'   => 'The service name must be a valid string.',
-            'name.max'      => 'The service name may not be greater than 255 characters.',
+            'name.string' => 'The service name must be a valid string.',
+            'name.max' => 'The service name may not be greater than 255 characters.',
         ];
     }
 }

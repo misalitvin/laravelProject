@@ -41,7 +41,6 @@ final class StoreOrUpdateProductRequest extends FormRequest
         return $rules;
     }
 
-
     public function messages()
     {
         return [
