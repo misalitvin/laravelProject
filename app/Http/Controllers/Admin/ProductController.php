@@ -12,17 +12,14 @@ use App\Models\Manufacturer;
 use App\Models\Product;
 use App\Models\Service;
 use App\Services\ProductService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 final class ProductController extends Controller
 {
-    protected ProductService $productService;
+    public function __construct(protected ProductService $productService) {}
 
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
-
-    public function index(ProductFilterRequest $request)
+    public function index(ProductFilterRequest $request): View
     {
         $filterData = ProductFilterData::fromRequest($request);
 
@@ -34,7 +31,7 @@ final class ProductController extends Controller
         return view('admin.products.index', compact('products'));
     }
 
-    public function create()
+    public function create(): View
     {
         $services = Service::all();
         $manufacturers = Manufacturer::all();
@@ -42,7 +39,7 @@ final class ProductController extends Controller
         return view('admin.products.create', compact('services', 'manufacturers'));
     }
 
-    public function store(StoreOrUpdateProductRequest $request)
+    public function store(StoreOrUpdateProductRequest $request): RedirectResponse
     {
         $validated = $request->validated();
 
@@ -53,14 +50,14 @@ final class ProductController extends Controller
         return redirect()->route('admin.products.index');
     }
 
-    public function show(Product $product)
+    public function show(Product $product): View
     {
         $product->load('services');
 
         return view('admin.products.show', compact('product'));
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): View
     {
         $product->load('services');
         $services = Service::all();
@@ -69,9 +66,8 @@ final class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'services', 'manufacturers'));
     }
 
-    public function update(StoreOrUpdateProductRequest $request, Product $product)
+    public function update(StoreOrUpdateProductRequest $request, Product $product): RedirectResponse
     {
-
         $product->update($request->validated());
 
         $this->productService->syncServices($product, $request->validated('services') ?? []);
@@ -79,7 +75,7 @@ final class ProductController extends Controller
         return redirect()->route('admin.products.index');
     }
 
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
         $product->delete();
 

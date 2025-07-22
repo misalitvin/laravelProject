@@ -9,7 +9,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 final class ProductFactory extends Factory
 {
-    public function definition()
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
     {
         return [
             'name' => $this->faker->word().' '.$this->faker->randomElement(['TV', 'Laptop', 'Phone', 'Refrigerator']),

@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CurrencyRate;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 final class ProductController extends Controller
@@ -21,7 +22,7 @@ final class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $filterData = ProductFilterData::fromRequest($request);
 
@@ -33,7 +34,7 @@ final class ProductController extends Controller
         return view('user.products.index', compact('products'));
     }
 
-    public function show(Product $product)
+    public function show(Product $product): View
     {
         $product->load('services');
 

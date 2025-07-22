@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 final class Product_ServiceFactory extends Factory
 {
-    public function definition()
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, float|int>
+     */
+    public function definition(): array
     {
         return [
             'days_to_complete' => $this->faker->numberBetween(1, 365),

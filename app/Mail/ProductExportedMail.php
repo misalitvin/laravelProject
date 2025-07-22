@@ -16,10 +16,12 @@ final class ProductExportedMail extends Mailable
         $this->s3Path = $s3Path;
     }
 
-    public function build()
+    public function build(): self
     {
         return $this->subject('Product Catalog Exported')
             ->view('emails.product_exported')
-            ->with(['link' => Storage::disk('s3')->url($this->s3Path)]);
+            ->with([
+                'link' => Storage::disk('s3')->url($this->s3Path),
+            ]);
     }
 }

@@ -13,7 +13,12 @@ final class StoreOrUpdateProductRequest extends FormRequest
         return true;
     }
 
-    public function rules()
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, mixed>
+     */
+    public function rules(): array
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
@@ -41,7 +46,12 @@ final class StoreOrUpdateProductRequest extends FormRequest
         return $rules;
     }
 
-    public function messages()
+    /**
+     * Get custom error messages for validator.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
     {
         return [
             'name.required' => 'Product name is required.',
