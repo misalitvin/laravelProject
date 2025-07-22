@@ -1,61 +1,105 @@
-Product Catalog
+# Product Catalog
 
-Project Overview
-
-A Laravel-based product catalog system with admin and user functionality.
+## Project Overview
+Laravel-based product catalog system with admin and user functionality.  
 Supports products, services, currency rates, and CSV exports.
 
-Prerequisites:
+---
 
-Docker and Docker Compose installed
+## Prerequisites
+- Docker and Docker Compose installed
+- Git installed
+- PHP 8.1+
+- Composer
 
-Git installed
+---
 
-PHP 8.1+
+## Getting Started
 
-Composer
+1. **Clone the repository**
 
-Getting Started
-1. Clone the repository
+   ```bash
+   git clone https://github.com/misalitvin/laravelProject.git
+   cd laravelProject
+Install dependencies
 
-	git clone https://github.com/misalitvin/laravelProject.git
-	cd laravelProject
+    composer install
 
-2. Start Docker Sail
+Start Docker Sail
 
-	./vendor/bin/sail up -d
-This will start containers for the app, database, etc.
+    ./vendor/bin/sail up -d
+    ./vendor/bin/sail composer install
+    
+Set up environment variables
 
-3. Install PHP dependencies
-
-	./vendor/bin/sail composer install
-
-4. Set up environment variables
 Copy the example env file and configure as needed:
 
-	cp .env.example .env
-Edit .env and configure your database credential.
+    cp .env.example .env
+Run migrations and seed database
 
-6. Run migrations and seed database
+    ./vendor/bin/sail artisan migrate --seed
+Import currency rates
 
-	./vendor/bin/sail artisan migrate --seed
+    ./vendor/bin/sail artisan currency:import
+Access the app
 
-7. Import currency rates
+Open your browser at http://localhost/products.
 
-	./vendor/bin/sail artisan currency:import
-   
-8. Access the app
-   
-Open your browser to http://localhost/products page
+Export Product Catalog to CSV
+Overview
+This project implements functionality to export products from one Laravel service to another using RabbitMQ.
+The products are exported to a CSV file and stored in AWS S3. Upon completion, the catalog administrator is notified via email.
 
-Admin routes are prefixed with /admin
+First Service – Export Initiator
+Trigger:
+Admin clicks the Export to CSV button in the UI.
 
-10. To export product catalog to csv file
+Behavior:
+
+    Fetch all products from the database.
     
-	9.1 Configure mail to which catalog should be sent
-   
-   	9.2 Run the worker for the RabbitMQ
+    Divide the products into batches of 100 items.
     
-		./vendor/bin/sail artisan queue:work
-   
-	9.3 Press Export button and check the mail
+    Dispatch each batch as a job to the default Laravel queue (backed by RabbitMQ).
+
+Technical notes:
+
+    Uses Laravel’s native queue functionality.
+    Jobs are serialized and sent to RabbitMQ.
+    
+    No custom RabbitMQ wrapper or exchange customization required.
+
+Second Service – Export Processor
+Worker responsibilities:
+
+    A single worker listens for product export jobs.
+    
+    For each received job (100 products):
+    
+    Append products to a CSV file named products.csv.
+    
+    Use Laravel filesystem (S3 driver) to store the file in AWS S3 under a defined path.
+
+Finalization:
+    
+    After the last batch is processed:
+    
+    Finalize the CSV file.
+    
+    Send a notification email to the catalog administrator indicating the export is complete and the file is available in S3.
+
+Acceptance Criteria
+    Admin can trigger the export from the UI.
+    
+    All products are exported in batches of 100 via queued jobs.
+    
+    A CSV file is created and continuously appended during processing.
+    
+    The file is stored in AWS S3 upon completion.
+    
+    An email is sent to the admin with a success message and (optionally) the download link.
+
+Running the Worker
+Run the following command to start the queue worker:
+
+    ./vendor/bin/sail artisan queue:work
