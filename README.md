@@ -103,3 +103,6 @@ Running the Worker
 Run the following command to start the queue worker:
 
     ./vendor/bin/sail artisan queue:work
+
+Auth tests were created using Pest Framework as the part of the Laravel Breeze package.
+In order to try different solutions PHPUnit was used to create functional tests for controllers. 

@@ -15,12 +15,8 @@ use Illuminate\Http\Request;
 
 final class ProductController extends Controller
 {
-    protected ProductService $productService;
+    public function __construct(protected ProductService $productService) {}
 
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
 
     public function index(Request $request): View
     {
