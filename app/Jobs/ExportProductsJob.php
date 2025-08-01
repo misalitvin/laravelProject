@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Mail\ProductExportedMail;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -17,26 +18,25 @@ final class ExportProductsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public array $productsBatch;
-
     public int $batchIndex;
-
     public bool $isLastBatch;
-
     protected string $s3Folder = 'exports';
 
-    public function __construct(array $productsBatch, int $batchIndex, bool $isLastBatch)
+    public function __construct(int $batchIndex, bool $isLastBatch)
     {
-        $this->productsBatch = $productsBatch;
         $this->batchIndex = $batchIndex;
         $this->isLastBatch = $isLastBatch;
     }
 
-    public function handle(): void
+    public function handle(ProductRepositoryInterface $productRepository): void
     {
-        $csvContent = $this->buildCsvContent($this->productsBatch, $this->batchIndex === 0);
+        $products = $productRepository
+            ->getBatch($this->batchIndex, 100)
+            ->toArray();
 
+        $csvContent = $this->buildCsvContent($products, $this->batchIndex === 0);
         $batchFilename = "{$this->s3Folder}/products_batch_{$this->batchIndex}.csv";
+
         Storage::disk('s3')->put($batchFilename, $csvContent);
 
         if ($this->isLastBatch) {
@@ -97,14 +97,18 @@ final class ExportProductsJob implements ShouldQueue
     {
         $files = Storage::disk('s3')->files($this->s3Folder);
 
-        $batchFiles = array_filter($files, fn ($file) => str_starts_with($file, "{$this->s3Folder}/products_batch_"));
+        $batchFiles = array_filter($files, fn ($file) =>
+        str_starts_with($file, "{$this->s3Folder}/products_batch_")
+        );
 
         $finalCsvContent = $this->mergeBatchFiles($batchFiles);
 
         $finalFilename = "{$this->s3Folder}/products.csv";
         Storage::disk('s3')->put($finalFilename, $finalCsvContent);
 
-        Mail::to(config('mail.admin_address'))->send(new ProductExportedMail($finalFilename));
+        Mail::to(config('mail.admin_address'))->send(
+            new ProductExportedMail($finalFilename)
+        );
     }
 
     protected function mergeBatchFiles(array $batchFiles): string
@@ -114,17 +118,16 @@ final class ExportProductsJob implements ShouldQueue
 
         foreach ($batchFiles as $file) {
             $content = Storage::disk('s3')->get($file);
-            $lines = explode("\n", mb_trim($content));
+            $lines = explode("\n", trim($content));
 
             if (! $isFirstFile) {
                 array_shift($lines);
             }
 
             foreach ($lines as $line) {
-                if (mb_trim($line) === '') {
-                    continue;
+                if (trim($line) !== '') {
+                    fwrite($handle, $line."\n");
                 }
-                fwrite($handle, $line."\n");
             }
 
             $isFirstFile = false;

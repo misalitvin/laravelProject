@@ -6,15 +6,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrUpdateServiceRequest;
-use App\Models\Service;
+use App\Interfaces\Repositories\ServiceRepositoryInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 final class ServiceController extends Controller
 {
+    public function __construct(
+        protected ServiceRepositoryInterface $serviceRepository,
+    ) {}
+
     public function index(): View
     {
-        $services = Service::paginate(10);
+        $services = $this->serviceRepository->paginate();
 
         return view('admin.services.index', ['services' => $services]);
     }
@@ -26,32 +30,53 @@ final class ServiceController extends Controller
 
     public function store(StoreOrUpdateServiceRequest $request): RedirectResponse
     {
-        Service::create($request->validated());
+        $this->serviceRepository->create($request->validated());
 
         return redirect()->route('admin.services.index');
     }
 
-    public function update(StoreOrUpdateServiceRequest $request, Service $service): RedirectResponse
+    public function update(StoreOrUpdateServiceRequest $request, int $id): RedirectResponse
     {
-        $service->update($request->validated());
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        $this->serviceRepository->update($service, $request->validated());
 
         return redirect()->route('admin.services.index');
     }
 
-    public function show(Service $service): View
+    public function show(int $id): View
     {
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
         return view('admin.services.show', compact('service'));
     }
 
-    public function edit(Service $service): View
+    public function edit(int $id): View
     {
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
         return view('admin.services.edit', compact('service'));
     }
 
-    public function destroy(Service $service): RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
-        $service->delete();
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        $this->serviceRepository->delete($service);
 
         return redirect()->route('admin.services.index');
     }
 }
+

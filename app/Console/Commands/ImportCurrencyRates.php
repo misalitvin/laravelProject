@@ -1,47 +1,38 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Console\Commands;
 
-use App\Models\CurrencyRate;
+use App\Enums\Currency;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use App\Interfaces\CurrencyClientInterface;
+use App\Interfaces\Repositories\CurrencyRateRepositoryInterface;
 
 final class ImportCurrencyRates extends Command
 {
     protected $signature = 'currency:import';
-
     protected $description = 'Import currency exchange rates from ECB';
 
-    public function handle()
+    public function __construct(
+        private CurrencyClientInterface $currencyClient,
+        private CurrencyRateRepositoryInterface $currencyRateRepository
+    ) {
+        parent::__construct();
+    }
+
+    public function handle(): void
     {
-        $url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
-        $response = Http::get($url);
+        try {
+            $rates = $this->currencyClient->fetchRates();
 
-        if (! $response->ok()) {
-            $this->error('Failed to fetch exchange rates.');
-
-            return;
-        }
-
-        $xml = simplexml_load_string($response->body());
-        $xml->registerXPathNamespace('ns', 'http://www.ecb.int/vocabulary/2002-08-01/eurofxref');
-
-        $rates = $xml->xpath('//ns:Cube/ns:Cube/ns:Cube');
-
-        $currencies = ['USD', 'EUR', 'PLN'];
-        CurrencyRate::updateOrCreate(['currency' => 'EUR'], ['rate' => 1]);
-
-        foreach ($rates as $rate) {
-            $currency = (string) $rate['currency'];
-            $value = (float) $rate['rate'];
-
-            if (in_array($currency, $currencies)) {
-                CurrencyRate::updateOrCreate(['currency' => $currency], ['rate' => $value]);
+            foreach (Currency::all() as $currency) {
+                if (isset($rates[$currency])) {
+                    $this->currencyRateRepository->save($currency, $rates[$currency]);
+                }
             }
-        }
 
-        $this->info('Currency rates imported successfully.');
+            $this->info('Currency rates imported successfully.');
+        } catch (\Throwable $e) {
+            $this->error('Failed to import currency rates: ' . $e->getMessage());
+        }
     }
 }

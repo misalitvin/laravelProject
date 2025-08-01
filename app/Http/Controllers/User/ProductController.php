@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
@@ -7,37 +6,34 @@ namespace App\Http\Controllers\User;
 use App\DTOs\ProductFilterData;
 use App\Enums\Currency;
 use App\Http\Controllers\Controller;
-use App\Models\CurrencyRate;
-use App\Models\Product;
-use App\Services\ProductService;
+use App\Http\Requests\ProductFilterRequest;
+use App\Interfaces\Repositories\CurrencyRateRepositoryInterface;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 
 final class ProductController extends Controller
 {
-    public function __construct(protected ProductService $productService) {}
+    public function __construct(
+        protected ProductRepositoryInterface $productRepository,
+        protected CurrencyRateRepositoryInterface $currencyRateRepository,
+    ) {}
 
-
-    public function index(Request $request): View
+    public function index(ProductFilterRequest $request): View
     {
         $filterData = ProductFilterData::fromRequest($request);
-
-        $products = $this->productService
-            ->searchAndFilter($filterData)
-            ->paginate(10)
-            ->withQueryString();
+        $products = $this->productRepository->filterProducts($filterData);
+        $products->withQueryString();
 
         return view('user.products.index', compact('products'));
     }
 
-    public function show(Product $product): View
+    public function show(int $id): View
     {
-        $product->load('services');
+        $product = $this->productRepository->findWithRelations($id, ['services']);
 
         $currencies = array_column(Currency::cases(), 'value');
 
-        $rates = CurrencyRate::whereIn('currency', $currencies)
-            ->pluck('rate', 'currency');
+        $rates = $this->currencyRateRepository->getRatesForCurrencies($currencies);
 
         $priceEUR = $product->price;
 

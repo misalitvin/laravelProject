@@ -24,23 +24,27 @@ Supports products, services, currency rates, and CSV exports.
 Install dependencies
 
     composer install
-
-Start Docker Sail
-
-    ./vendor/bin/sail up -d
-    ./vendor/bin/sail composer install
-    
 Set up environment variables
 
 Copy the example env file and configure as needed:
 
     cp .env.example .env
+Start Docker Sail
+
+    ./vendor/bin/sail up -d
+    ./vendor/bin/sail composer install
 Run migrations and seed database
 
     ./vendor/bin/sail artisan migrate --seed
 Import currency rates
 
     ./vendor/bin/sail artisan currency:import
+Ensure S3 bucket is created
+
+    ./vendor/bin/sail artisan s3:ensure-bucket
+Run the npm development server
+
+    ./vendor/bin/sail npm run dev &
 Access the app
 
 Open your browser at http://localhost/products.

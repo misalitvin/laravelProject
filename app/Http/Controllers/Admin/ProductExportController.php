@@ -6,31 +6,37 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ExportProductsJob;
-use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
 
 final class ProductExportController extends Controller
 {
+    private int $batchSize = 100;
+
+    public function __construct(
+        private ProductRepositoryInterface $productRepository
+    ) {}
+
     public function exportToCsv(): RedirectResponse
     {
-        $batchSize = 100;
         $index = 0;
 
-        $lastProduct = Product::latest('id')->first();
+        $lastProduct = $this->productRepository->getLastProduct();
 
         if (! $lastProduct) {
-            return redirect()->route('admin.products.index')->with('success', 'No products to export.');
+            return redirect()
+                ->route('admin.products.index')
+                ->with('success', 'No products to export.');
         }
 
-        Product::with(['manufacturer', 'services'])
-            ->orderBy('id')
-            ->chunk($batchSize, function ($products) use (&$index, $lastProduct) {
-                $isLast = $products->last()->is($lastProduct);
+        $this->productRepository->chunkWithRelations($this->batchSize, function ($products) use (&$index, $lastProduct) {
+            $isLast = $products->last()->is($lastProduct);
+            ExportProductsJob::dispatch($index, $isLast);
+            $index++;
+        });
 
-                ExportProductsJob::dispatch($products->toArray(), $index, $isLast);
-                $index++;
-            });
-
-        return redirect()->route('admin.products.index')->with('success', 'Export initiated.');
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Export initiated.');
     }
 }
