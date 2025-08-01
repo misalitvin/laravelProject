@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -13,7 +15,9 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-
+    'ecb' => [
+        'url' => env('ECB_RATES_URL', 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'),
+    ],
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

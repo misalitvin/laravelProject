@@ -1,61 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Product Catalog
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Project Overview
+Laravel-based product catalog system with admin and user functionality.  
+Supports products, services, currency rates, and CSV exports.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Prerequisites
+- Docker and Docker Compose installed
+- Git installed
+- PHP 8.1+
+- Composer
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Getting Started
 
-## Learning Laravel
+1. **Clone the repository**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+   ```bash
+   git clone https://github.com/misalitvin/laravelProject.git
+   cd laravelProject
+Install dependencies
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+    composer install
+Set up environment variables
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Copy the example env file and configure as needed:
 
-## Laravel Sponsors
+    cp .env.example .env
+Start Docker Sail
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    ./vendor/bin/sail up -d
+    ./vendor/bin/sail composer install
+Run migrations and seed database
 
-### Premium Partners
+    ./vendor/bin/sail artisan migrate --seed
+Import currency rates
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    ./vendor/bin/sail artisan currency:import
+Ensure S3 bucket is created
 
-## Contributing
+    ./vendor/bin/sail artisan s3:ensure-bucket
+Run the npm development server
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    ./vendor/bin/sail npm run dev &
+Access the app
 
-## Code of Conduct
+Open your browser at http://localhost/products.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Export Product Catalog to CSV
+Overview
+This project implements functionality to export products from one Laravel service to another using RabbitMQ.
+The products are exported to a CSV file and stored in AWS S3. Upon completion, the catalog administrator is notified via email.
 
-## Security Vulnerabilities
+First Service – Export Initiator
+Trigger:
+Admin clicks the Export to CSV button in the UI.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Behavior:
 
-## License
+    Fetch all products from the database.
+    
+    Divide the products into batches of 100 items.
+    
+    Dispatch each batch as a job to the default Laravel queue (backed by RabbitMQ).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Technical notes:
+
+    Uses Laravel’s native queue functionality.
+    Jobs are serialized and sent to RabbitMQ.
+    
+    No custom RabbitMQ wrapper or exchange customization required.
+
+Second Service – Export Processor
+Worker responsibilities:
+
+    A single worker listens for product export jobs.
+    
+    For each received job (100 products):
+    
+    Append products to a CSV file named products.csv.
+    
+    Use Laravel filesystem (S3 driver) to store the file in AWS S3 under a defined path.
+
+Finalization:
+    
+    After the last batch is processed:
+    
+    Finalize the CSV file.
+    
+    Send a notification email to the catalog administrator indicating the export is complete and the file is available in S3.
+
+Acceptance Criteria
+    Admin can trigger the export from the UI.
+    
+    All products are exported in batches of 100 via queued jobs.
+    
+    A CSV file is created and continuously appended during processing.
+    
+    The file is stored in AWS S3 upon completion.
+    
+    An email is sent to the admin with a success message and (optionally) the download link.
+
+Running the Worker
+Run the following command to start the queue worker:
+
+    ./vendor/bin/sail artisan queue:work
+
+Auth tests were created using Pest Framework as the part of the Laravel Breeze package.
+In order to try different solutions PHPUnit was used to create functional tests for controllers. 
