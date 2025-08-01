@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Interfaces\Repositories;
 
@@ -10,7 +11,6 @@ use Illuminate\Support\Collection;
 
 interface ProductRepositoryInterface
 {
-
     public function getLastProduct(): ?Product;
 
     public function chunkWithRelations(int $batchSize, callable $callback): void;
@@ -20,6 +20,7 @@ interface ProductRepositoryInterface
     public function filterProducts(ProductFilterData $filterData): LengthAwarePaginator;
 
     public function create(array $data): Product;
+
     public function findById(int $id): Product;
 
     public function update(Product $product, array $data): bool;
@@ -29,5 +30,4 @@ interface ProductRepositoryInterface
     public function findWithRelations(int $id, array $relations = []): Product;
 
     public function syncServices(Product $product, array $services): void;
-
 }

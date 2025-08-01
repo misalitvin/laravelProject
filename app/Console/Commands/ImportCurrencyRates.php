@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Enums\Currency;
-use Illuminate\Console\Command;
 use App\Interfaces\CurrencyClientInterface;
 use App\Interfaces\Repositories\CurrencyRateRepositoryInterface;
+use Illuminate\Console\Command;
+use Throwable;
 
 final class ImportCurrencyRates extends Command
 {
     protected $signature = 'currency:import';
+
     protected $description = 'Import currency exchange rates from ECB';
 
     public function __construct(
@@ -31,8 +35,8 @@ final class ImportCurrencyRates extends Command
             }
 
             $this->info('Currency rates imported successfully.');
-        } catch (\Throwable $e) {
-            $this->error('Failed to import currency rates: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            $this->error('Failed to import currency rates: '.$e->getMessage());
         }
     }
 }

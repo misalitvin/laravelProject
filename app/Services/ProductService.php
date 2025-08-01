@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\DTOs\ProductFilterData;
@@ -22,4 +25,3 @@ final class ProductService
         $this->productRepository->syncServices($product, $services);
     }
 }
-

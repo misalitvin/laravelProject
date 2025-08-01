@@ -1,9 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Enums\Currency;
 use App\Interfaces\CurrencyClientInterface;
 use App\Interfaces\HttpClientInterface;
+use RuntimeException;
 
 final class EcbCurrencyClient implements CurrencyClientInterface
 {
@@ -17,7 +21,7 @@ final class EcbCurrencyClient implements CurrencyClientInterface
         $response = $this->httpClient->get($url);
 
         if (! $response->ok()) {
-            throw new \RuntimeException('Failed to fetch exchange rates.');
+            throw new RuntimeException('Failed to fetch exchange rates.');
         }
 
         $xml = simplexml_load_string($response->body());
@@ -36,5 +40,4 @@ final class EcbCurrencyClient implements CurrencyClientInterface
 
         return $result;
     }
-
 }

@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -40,7 +41,6 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return Product::findOrFail($id);
     }
-
 
     public function getLastProduct(): ?Product
     {
@@ -96,10 +96,10 @@ class ProductRepository implements ProductRepositoryInterface
         if ($sort = $filterData->sort) {
             $query->orderBy(
                 ...match ($sort) {
-                'name_asc' => ['name', 'asc'],
-                'name_desc' => ['name', 'desc'],
-                default => ['created_at', 'desc'],
-            }
+                    'name_asc' => ['name', 'asc'],
+                    'name_desc' => ['name', 'desc'],
+                    default => ['created_at', 'desc'],
+                }
             );
         } else {
             $query->orderBy('created_at', 'desc');
@@ -113,7 +113,7 @@ class ProductRepository implements ProductRepositoryInterface
         $syncData = [];
 
         foreach ($services as $serviceId => $serviceData) {
-            if (!empty($serviceData['selected'])) {
+            if (! empty($serviceData['selected'])) {
                 $syncData[$serviceId] = [
                     'days_to_complete' => $serviceData['days_to_complete'] ?? null,
                     'cost' => $serviceData['cost'] ?? null,

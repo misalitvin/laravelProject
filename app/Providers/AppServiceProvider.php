@@ -16,7 +16,6 @@ use App\Repositories\ProductRepository;
 use App\Repositories\ServiceRepository;
 use App\Services\EcbCurrencyClient;
 use App\Services\LaravelHttpClient;
-
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -35,14 +34,8 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(ManufacturerRepositoryInterface::class, ManufacturerRepository::class);
     }
 
-
-
-
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-
-    }
+    public function boot(): void {}
 }

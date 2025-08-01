@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories;
 
 use App\Interfaces\Repositories\ServiceRepositoryInterface;
@@ -39,4 +41,3 @@ class ServiceRepository implements ServiceRepositoryInterface
         return $service->delete();
     }
 }
-

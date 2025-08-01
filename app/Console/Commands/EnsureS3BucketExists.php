@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
-use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
+use Aws\S3\S3Client;
 use Illuminate\Console\Command;
 
 class EnsureS3BucketExists extends Command
 {
     protected $signature = 's3:ensure-bucket';
+
     protected $description = 'Ensure that the configured S3 bucket exists';
 
     public function handle(): void
@@ -42,4 +45,3 @@ class EnsureS3BucketExists extends Command
         }
     }
 }
-

@@ -79,4 +79,3 @@ final class ServiceController extends Controller
         return redirect()->route('admin.services.index');
     }
 }
-

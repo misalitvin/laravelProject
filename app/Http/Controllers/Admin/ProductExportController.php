@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Jobs\ExportProductsJob;
 use Illuminate\Http\RedirectResponse;
-use App\Interfaces\Repositories\ProductRepositoryInterface;
 
 final class ProductExportController extends Controller
 {

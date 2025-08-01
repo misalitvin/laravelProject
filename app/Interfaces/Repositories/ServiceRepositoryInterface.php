@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Interfaces\Repositories;
 
 use App\Models\Service;
@@ -20,4 +22,3 @@ interface ServiceRepositoryInterface
 
     public function delete(Service $service): bool;
 }
-
