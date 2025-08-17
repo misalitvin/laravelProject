@@ -12,9 +12,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductRepository implements ProductRepositoryInterface
 {
-    public function findWithRelations(int $id, array $relations = []): Product
+    public function findByIdWithServices(int $id): Product
     {
-        return Product::with($relations)->findOrFail($id);
+        return Product::with('services')->findOrFail($id);
+    }
+
+    public function findByIdWithAllRelations(int $id): Product
+    {
+        return Product::with(['manufacturer', 'services'])->findOrFail($id);
     }
 
     public function create(array $data): Product
@@ -47,13 +52,6 @@ class ProductRepository implements ProductRepositoryInterface
         return Product::latest('id')->first();
     }
 
-    public function chunkWithRelations(int $batchSize, callable $callback): void
-    {
-        Product::with(['manufacturer', 'services'])
-            ->orderBy('id')
-            ->chunk($batchSize, $callback);
-    }
-
     public function getBatch(int $batchIndex, int $batchSize): Collection
     {
         return Product::with(['manufacturer', 'services'])
@@ -80,9 +78,7 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         if ($filterData->serviceId !== null) {
-            $query->whereHas('services', function ($q) use ($filterData) {
-                $q->where('services.id', $filterData->serviceId);
-            });
+            $query->whereHas('services', fn ($q) => $q->where('services.id', $filterData->serviceId));
         }
 
         if ($filterData->minPrice !== null) {

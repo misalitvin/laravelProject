@@ -15,7 +15,7 @@ use App\Services\ProductService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
-final class ProductController extends Controller
+class ProductController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
@@ -53,14 +53,14 @@ final class ProductController extends Controller
 
     public function show(int $id): View
     {
-        $product = $this->productRepository->findWithRelations($id, ['services']);
+        $product = $this->productRepository->findByIdWithServices($id);
 
         return view('admin.products.show', compact('product'));
     }
 
     public function edit(int $id): View
     {
-        $product = $this->productRepository->findWithRelations($id, ['services']);
+        $product = $this->productRepository->findByIdWithAllRelations($id);
         $services = $this->serviceRepository->getAll();
         $manufacturers = $this->manufacturerRepository->getAll();
 

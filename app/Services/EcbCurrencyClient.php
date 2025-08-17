@@ -5,30 +5,36 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\Currency;
+use App\Exceptions\EcbFetchRatesException;
 use App\Interfaces\CurrencyClientInterface;
 use App\Interfaces\HttpClientInterface;
-use RuntimeException;
 
 final class EcbCurrencyClient implements CurrencyClientInterface
 {
-    public function __construct(
-        private HttpClientInterface $httpClient
-    ) {}
+    private string $ecbUrl;
+
+    private string $ecbNamespace;
+
+    public function __construct(private HttpClientInterface $httpClient)
+    {
+        $this->ecbUrl = config('services.ecb.url');
+        $this->ecbNamespace = config('services.ecb.namespace');
+    }
 
     public function fetchRates(): array
     {
-        $url = config('services.ecb.url');
-        $response = $this->httpClient->get($url);
+        $response = $this->httpClient->get($this->ecbUrl);
 
         if (! $response->ok()) {
-            throw new RuntimeException('Failed to fetch exchange rates.');
+            throw new EcbFetchRatesException();
         }
 
         $xml = simplexml_load_string($response->body());
-        $xml->registerXPathNamespace('ns', 'http://www.ecb.int/vocabulary/2002-08-01/eurofxref');
-        $nodes = $xml->xpath('//ns:Cube/ns:Cube/ns:Cube');
+        $xml->registerXPathNamespace('ns', $this->ecbNamespace);
 
+        $nodes = $xml->xpath('//ns:Cube/ns:Cube/ns:Cube');
         $result = [Currency::EUR->value => 1.0];
+
         foreach ($nodes as $node) {
             $currency = (string) $node['currency'];
             $rate = (float) $node['rate'];

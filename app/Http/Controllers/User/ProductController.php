@@ -12,7 +12,7 @@ use App\Interfaces\Repositories\CurrencyRateRepositoryInterface;
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use Illuminate\Contracts\View\View;
 
-final class ProductController extends Controller
+class ProductController extends Controller
 {
     public function __construct(
         protected ProductRepositoryInterface $productRepository,
@@ -30,9 +30,9 @@ final class ProductController extends Controller
 
     public function show(int $id): View
     {
-        $product = $this->productRepository->findWithRelations($id, ['services']);
+        $product = $this->productRepository->findByIdWithServices($id);
 
-        $currencies = array_column(Currency::cases(), 'value');
+        $currencies = Currency::all();
 
         $rates = $this->currencyRateRepository->getRatesForCurrencies($currencies);
 

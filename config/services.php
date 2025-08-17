@@ -16,8 +16,10 @@ return [
     |
     */
     'ecb' => [
-        'url' => env('ECB_RATES_URL', 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'),
+        'url' => env('ECB_RATES_URL'),
+        'namespace' => env('ECB_NAMESPACE'),
     ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

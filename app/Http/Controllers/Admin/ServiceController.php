@@ -10,7 +10,7 @@ use App\Interfaces\Repositories\ServiceRepositoryInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
-final class ServiceController extends Controller
+class ServiceController extends Controller
 {
     public function __construct(
         protected ServiceRepositoryInterface $serviceRepository,

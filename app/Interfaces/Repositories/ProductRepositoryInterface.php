@@ -13,8 +13,6 @@ interface ProductRepositoryInterface
 {
     public function getLastProduct(): ?Product;
 
-    public function chunkWithRelations(int $batchSize, callable $callback): void;
-
     public function getBatch(int $batchIndex, int $batchSize): Collection;
 
     public function filterProducts(ProductFilterData $filterData): LengthAwarePaginator;
@@ -27,7 +25,9 @@ interface ProductRepositoryInterface
 
     public function delete(Product $product): bool;
 
-    public function findWithRelations(int $id, array $relations = []): Product;
+    public function findByIdWithServices(int $id): Product;
+
+    public function findByIdWithAllRelations(int $id): Product;
 
     public function syncServices(Product $product, array $services): void;
 }

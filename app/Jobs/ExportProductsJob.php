@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\DTOs\ProductDTO;
+use App\DTOs\ServiceDTO;
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Mail\ProductExportedMail;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Mail\Mailer;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 final class ExportProductsJob implements ShouldQueue
 {
@@ -24,22 +26,32 @@ final class ExportProductsJob implements ShouldQueue
 
     protected string $s3Folder = 'exports';
 
+    protected Filesystem $storage;
+
+    protected Mailer $mailer;
+
     public function __construct(int $batchIndex, bool $isLastBatch)
     {
         $this->batchIndex = $batchIndex;
         $this->isLastBatch = $isLastBatch;
     }
 
-    public function handle(ProductRepositoryInterface $productRepository): void
-    {
+    public function handle(
+        ProductRepositoryInterface $productRepository,
+        Filesystem $storage,
+        Mailer $mailer
+    ): void {
+        $this->storage = $storage;
+        $this->mailer = $mailer;
+
+        /** @var ProductDTO[] $products */
         $products = $productRepository
-            ->getBatch($this->batchIndex, 100)
-            ->toArray();
+            ->getBatch($this->batchIndex, 100);
 
         $csvContent = $this->buildCsvContent($products, $this->batchIndex === 0);
         $batchFilename = "{$this->s3Folder}/products_batch_{$this->batchIndex}.csv";
 
-        Storage::disk('s3')->put($batchFilename, $csvContent);
+        $this->storage->put($batchFilename, $csvContent);
 
         if ($this->isLastBatch) {
             $this->finalizeExport();
@@ -58,31 +70,29 @@ final class ExportProductsJob implements ShouldQueue
         }
 
         foreach ($products as $product) {
-            $manufacturerName = $product['manufacturer']['name'] ?? 'N/A';
+            $manufacturerName = $product->manufacturerName ?? 'N/A';
 
-            if (empty($product['services'])) {
+            if (empty($product->services)) {
                 fputcsv($handle, [
-                    $product['name'],
-                    $product['description'],
-                    $product['release_date'],
-                    $product['price'],
+                    $product->name,
+                    $product->description,
+                    $product->releaseDate,
+                    $product->price,
                     $manufacturerName,
                     '', '', '',
                 ]);
             } else {
-                foreach ($product['services'] as $service) {
-                    $daysToComplete = $service['pivot']['days_to_complete'] ?? '';
-                    $cost = $service['pivot']['cost'] ?? '';
-
+                /** @var ServiceDTO $service */
+                foreach ($product->services as $service) {
                     fputcsv($handle, [
-                        $product['name'],
-                        $product['description'],
-                        $product['release_date'],
-                        $product['price'],
+                        $product->name,
+                        $product->description,
+                        $product->releaseDate,
+                        $product->price,
                         $manufacturerName,
-                        $service['name'],
-                        $daysToComplete,
-                        $cost,
+                        $service->name,
+                        $service->daysToComplete,
+                        $service->cost,
                     ]);
                 }
             }
@@ -97,17 +107,19 @@ final class ExportProductsJob implements ShouldQueue
 
     protected function finalizeExport(): void
     {
-        $files = Storage::disk('s3')->files($this->s3Folder);
+        $files = $this->storage->files($this->s3Folder);
 
-        $batchFiles = array_filter($files, fn ($file) => str_starts_with($file, "{$this->s3Folder}/products_batch_")
+        $batchFiles = array_filter(
+            $files,
+            fn ($file) => str_starts_with($file, "{$this->s3Folder}/products_batch_")
         );
 
         $finalCsvContent = $this->mergeBatchFiles($batchFiles);
 
         $finalFilename = "{$this->s3Folder}/products.csv";
-        Storage::disk('s3')->put($finalFilename, $finalCsvContent);
+        $this->storage->put($finalFilename, $finalCsvContent);
 
-        Mail::to(config('mail.admin_address'))->send(
+        $this->mailer->to(config('mail.admin_address'))->send(
             new ProductExportedMail($finalFilename)
         );
     }
@@ -118,7 +130,7 @@ final class ExportProductsJob implements ShouldQueue
         $isFirstFile = true;
 
         foreach ($batchFiles as $file) {
-            $content = Storage::disk('s3')->get($file);
+            $content = $this->storage->get($file);
             $lines = explode("\n", mb_trim($content));
 
             if (! $isFirstFile) {

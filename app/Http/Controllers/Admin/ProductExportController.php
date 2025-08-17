@@ -19,8 +19,6 @@ final class ProductExportController extends Controller
 
     public function exportToCsv(): RedirectResponse
     {
-        $index = 0;
-
         $lastProduct = $this->productRepository->getLastProduct();
 
         if (! $lastProduct) {
@@ -29,11 +27,20 @@ final class ProductExportController extends Controller
                 ->with('success', 'No products to export.');
         }
 
-        $this->productRepository->chunkWithRelations($this->batchSize, function ($products) use (&$index, $lastProduct) {
-            $isLast = $products->last()->is($lastProduct);
-            ExportProductsJob::dispatch($index, $isLast);
-            $index++;
-        });
+        $batchIndex = 0;
+        do {
+            $products = $this->productRepository->getBatch($batchIndex, $this->batchSize);
+
+            if ($products->isEmpty()) {
+                break;
+            }
+
+            $isLast = $products->contains($lastProduct);
+
+            ExportProductsJob::dispatch($batchIndex, $isLast);
+
+            $batchIndex++;
+        } while (! $isLast);
 
         return redirect()
             ->route('admin.products.index')

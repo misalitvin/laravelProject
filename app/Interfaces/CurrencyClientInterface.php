@@ -6,5 +6,6 @@ namespace App\Interfaces;
 
 interface CurrencyClientInterface
 {
+    /** @return array<string, float> */
     public function fetchRates(): array;
 }
