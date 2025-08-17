@@ -1,76 +1,88 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
+use App\DTOs\ProductFilterData;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
-use App\Models\Service;
-use Illuminate\Http\Request;
+use App\Http\Requests\ProductFilterRequest;
+use App\Http\Requests\StoreOrUpdateProductRequest;
+use App\Interfaces\Repositories\ManufacturerRepositoryInterface;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
+use App\Interfaces\Repositories\ServiceRepositoryInterface;
+use App\Services\ProductService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected ProductService $productService,
+        protected ProductRepositoryInterface $productRepository,
+        protected ServiceRepositoryInterface $serviceRepository,
+        protected ManufacturerRepositoryInterface $manufacturerRepository,
+    ) {}
+
+    public function index(ProductFilterRequest $request): View
     {
-        $products = Product::paginate(10);
-        return view('admin.products.index', ['products' => $products]);
+        $filterData = ProductFilterData::fromRequest($request);
+        $products = $this->productService->getFilteredProducts($filterData);
+        $products->withQueryString();
+
+        return view('admin.products.index', compact('products'));
     }
 
-    public function create()
+    public function create(): View
     {
-        $services = Service::all();
-        return view('admin.products.create', ['services' => $services]);
+        $services = $this->serviceRepository->getAll();
+        $manufacturers = $this->manufacturerRepository->getAll();
+
+        return view('admin.products.create', compact('services', 'manufacturers'));
     }
 
-    public function store(Request $request)
+    public function store(StoreOrUpdateProductRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'manufacturer' => 'required',
-            'release_date' => 'required|date',
-            'price' => 'required|numeric',
-            'services' => 'array',
-        ]);
+        $validated = $request->validated();
 
-        $product = Product::create($validated);
-
-        if (isset($validated['services'])) {
-            $product->services()->sync($validated['services']);
-        }
+        $product = $this->productRepository->create($validated);
+        $this->productService->syncServices($product, $validated['services'] ?? []);
 
         return redirect()->route('admin.products.index');
     }
 
-    public function edit(Product $product)
+    public function show(int $id): View
     {
-        $services = Service::all();
-        return view('admin.products.edit', [
-            'product' => $product,
-            'services' => $services,
-        ]);
+        $product = $this->productRepository->findByIdWithServices($id);
+
+        return view('admin.products.show', compact('product'));
     }
 
-    public function update(Request $request, Product $product)
+    public function edit(int $id): View
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'manufacturer' => 'required',
-            'release_date' => 'required|date',
-            'price' => 'required|numeric',
-            'services' => 'array',
-        ]);
+        $product = $this->productRepository->findByIdWithAllRelations($id);
+        $services = $this->serviceRepository->getAll();
+        $manufacturers = $this->manufacturerRepository->getAll();
 
-        $product->update($validated);
-        $product->services()->sync($validated['services'] ?? []);
+        return view('admin.products.edit', compact('product', 'services', 'manufacturers'));
+    }
+
+    public function update(StoreOrUpdateProductRequest $request, int $id): RedirectResponse
+    {
+        $validated = $request->validated();
+        $product = $this->productRepository->findById($id);
+
+        $this->productRepository->update($product, $validated);
+        $this->productService->syncServices($product, $validated['services'] ?? []);
 
         return redirect()->route('admin.products.index');
     }
 
-    public function destroy(Product $product)
+    public function destroy(int $id): RedirectResponse
     {
-        $product->delete();
+        $product = $this->productRepository->findById($id);
+        $this->productRepository->delete($product);
+
         return redirect()->route('admin.products.index');
     }
 }
-

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->foreignId('service_id')->constrained()->onDelete('cascade');
-            $table->integer('daysToExpire');
+            $table->integer('days_to_complete');
             $table->decimal('cost', 10);
             $table->timestamps();
         });

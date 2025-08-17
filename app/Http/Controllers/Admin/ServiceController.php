@@ -1,65 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreOrUpdateServiceRequest;
+use App\Interfaces\Repositories\ServiceRepositoryInterface;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        protected ServiceRepositoryInterface $serviceRepository,
+    ) {}
+
+    public function index(): View
     {
-        //
+        $services = $this->serviceRepository->paginate();
+
+        return view('admin.services.index', ['services' => $services]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('admin.services.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreOrUpdateServiceRequest $request): RedirectResponse
     {
-        //
+        $this->serviceRepository->create($request->validated());
+
+        return redirect()->route('admin.services.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(StoreOrUpdateServiceRequest $request, int $id): RedirectResponse
     {
-        //
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        $this->serviceRepository->update($service, $request->validated());
+
+        return redirect()->route('admin.services.index');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function show(int $id): View
     {
-        //
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        return view('admin.services.show', compact('service'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function edit(int $id): View
     {
-        //
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        return view('admin.services.edit', compact('service'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(int $id): RedirectResponse
     {
-        //
+        $service = $this->serviceRepository->findById($id);
+        if ($service === null) {
+            abort(404);
+        }
+
+        $this->serviceRepository->delete($service);
+
+        return redirect()->route('admin.services.index');
     }
 }

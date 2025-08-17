@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -13,6 +15,10 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'ecb' => [
+        'url' => env('ECB_RATES_URL'),
+        'namespace' => env('ECB_NAMESPACE'),
+    ],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
